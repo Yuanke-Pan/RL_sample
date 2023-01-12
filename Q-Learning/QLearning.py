@@ -45,10 +45,9 @@ class DQN(object):
             state = [state]
         result = []
         for s in state:
-            result.append(self.state_transforms(s).unsqueeze(0))
+            result.append(self.state_transforms(s).unsqueeze(0).to(self.device))
             
-        result = torch.concatenate(result)
-        result = result.to(self.device)
+        result = torch.concatenate(result).to(self.device)
         
         return result
 

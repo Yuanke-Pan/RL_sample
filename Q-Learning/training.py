@@ -42,7 +42,7 @@ def train(cfg, env, agent):
         steps.append(ep_step)
         rewards.append(ep_reward)
 
-        if (i_ep + 1) % 10 == 0:
+        if (i_ep + 1) % 1 == 0:
             print(f"Epochs: {i_ep + 1} / {cfg['train_eps']}, Reward: {ep_reward:.2f}, Episilon: {agent.epsilon:.3f}")
             torch.save(agent.policy_net.state_dict(), "timestep_model.pth")
 
@@ -91,7 +91,7 @@ def all_seed(env,seed = 1):
     torch.backends.cudnn.enabled = False
 
 def env_agent_config(cfg):
-    env = gym.make(cfg['env_name'], render_mode="human") # 创建环境
+    env = gym.make(cfg['env_name']) # 创建环境
     if cfg['seed'] !=0:
         all_seed(env,seed=cfg['seed'])
     n_states = env.observation_space.shape[0]
@@ -118,12 +118,12 @@ def get_args():
     parser.add_argument('--gamma',default=0.95,type=float,help="discounted factor")
     parser.add_argument('--epsilon_start',default=0.95,type=float,help="initial value of epsilon")
     parser.add_argument('--epsilon_end',default=0.001,type=float,help="final value of epsilon")
-    parser.add_argument('--epsilon_decay',default=50000,type=int,help="decay rate of epsilon, the higher value, the slower decay")
+    parser.add_argument('--epsilon_decay',default=25000,type=int,help="decay rate of epsilon, the higher value, the slower decay")
     parser.add_argument('--lr',default=0.0001,type=float,help="learning rate")
     parser.add_argument('--memory_capacity',default=100000,type=int,help="memory capacity")
-    parser.add_argument('--batch_size',default=256,type=int)
+    parser.add_argument('--batch_size',default=64,type=int)
     parser.add_argument('--target_update',default=4,type=int)
-    parser.add_argument('--hidden_dim',default=256,type=int)
+    parser.add_argument('--hidden_dim',default=512,type=int)
     parser.add_argument('--device',default='cuda',type=str,help="cpu or cuda") 
     parser.add_argument('--seed',default=10,type=int,help="seed")   
     args = parser.parse_args([])
