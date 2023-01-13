@@ -91,7 +91,7 @@ def all_seed(env,seed = 1):
     torch.backends.cudnn.enabled = False
 
 def env_agent_config(cfg):
-    env = gym.make(cfg['env_name']) # 创建环境
+    env = gym.make(cfg['env_name'], render_mode="human") # 创建环境
     if cfg['seed'] !=0:
         all_seed(env,seed=cfg['seed'])
     n_states = env.observation_space.shape[0]
@@ -99,8 +99,9 @@ def env_agent_config(cfg):
     print(f"状态空间维度：{n_states}，动作空间维度：{n_actions}")
     cfg.update({"n_states":n_states,"n_actions":n_actions}) # 更新n_states和n_actions到cfg参数中
     model = simpleCnn(env.observation_space) # 创建模型
+    target_model = simpleCnn(env.observation_space)
     memory = ReplayBuffer(cfg['memory_capacity'])
-    agent = DQN(model, memory, cfg)
+    agent = DQN(model, target_model, memory, cfg)
     return env,agent
 
 import argparse
@@ -111,8 +112,8 @@ def get_args():
     """
     parser = argparse.ArgumentParser(description="hyperparameters")      
     parser.add_argument('--algo_name',default='DQN',type=str,help="name of algorithm")
-    parser.add_argument('--env_name',default='ALE/Pong-v5',type=str,help="name of environment")
-    parser.add_argument('--train_eps',default=200,type=int,help="episodes of training")
+    parser.add_argument('--env_name',default='Pong-v4',type=str,help="name of environment")
+    parser.add_argument('--train_eps',default=400,type=int,help="episodes of training")
     parser.add_argument('--test_eps',default=20,type=int,help="episodes of testing")
     parser.add_argument('--ep_max_steps',default = 1000000,type=int,help="steps per episode, much larger value can simulate infinite steps")
     parser.add_argument('--gamma',default=0.95,type=float,help="discounted factor")

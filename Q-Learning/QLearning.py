@@ -16,7 +16,7 @@ from timm.data import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 
 
 class DQN(object):
-    def __init__(self, model, memory, cfg) -> None:
+    def __init__(self, model, target_model, memory, cfg) -> None:
         self.n_actions = cfg["n_actions"]
         self.device = torch.device(cfg['device'])
         self.gamma = cfg['gamma']
@@ -28,7 +28,7 @@ class DQN(object):
         self.batchsize = cfg['batch_size']
 
         self.policy_net = model.to(self.device)
-        self.target_net = model.to(self.device)
+        self.target_net = target_model.to(self.device)
         #把policy网络的参数复制到target网络
         for target_param, param in zip(self.target_net.parameters(), self.policy_net.parameters()):
             target_param.data.copy_(param.data)
