@@ -10,6 +10,7 @@ import timm
 from model import simpleCnn
 from ReplayBuffer import ReplayBuffer
 from QLearning import DQN
+from wapper import *
 
 def train(cfg, env, agent):
 
@@ -23,10 +24,11 @@ def train(cfg, env, agent):
         ep_step = 0
         state = env.reset()
         for _ in range(cfg['ep_max_steps']):
+            
             ep_step += 1
             action = agent.sample_action(state)
             next_state, reward, done, _ = env.step(action)
-            agent.memory.push((state, action, reward, next_state, done))
+            agent.memory.add(state, action, reward, next_state, done)
             state = next_state
             agent.update()
             ep_reward += reward
@@ -91,7 +93,18 @@ def all_seed(env,seed = 1):
     torch.backends.cudnn.enabled = False
 
 def env_agent_config(cfg):
-    env = gym.make(cfg['env_name'], render_mode="human") # 创建环境
+    env = gym.make(cfg['env_name']) # 创建环境
+    env.seed(cfg["seed"])
+
+    env = NoopResetEnv(env, noop_max=30)
+    env = MaxAndSkipEnv(env, skip=4)
+    env = EpisodicLifeEnv(env)
+    env = FireResetEnv(env)
+    env = WarpFrame(env)
+    env = PyTorchFrame(env)
+    env = ClipRewardEnv(env)
+    env = FrameStack(env, 4)
+
     if cfg['seed'] !=0:
         all_seed(env,seed=cfg['seed'])
     n_states = env.observation_space.shape[0]
@@ -112,21 +125,21 @@ def get_args():
     """
     parser = argparse.ArgumentParser(description="hyperparameters")      
     parser.add_argument('--algo_name',default='DQN',type=str,help="name of algorithm")
-    parser.add_argument('--env_name',default='Pong-v4',type=str,help="name of environment")
+    parser.add_argument('--env_name',default='PongNoFrameskip-v4',type=str,help="name of environment")
     parser.add_argument('--train_eps',default=400,type=int,help="episodes of training")
     parser.add_argument('--test_eps',default=20,type=int,help="episodes of testing")
     parser.add_argument('--ep_max_steps',default = 1000000,type=int,help="steps per episode, much larger value can simulate infinite steps")
     parser.add_argument('--gamma',default=0.95,type=float,help="discounted factor")
     parser.add_argument('--epsilon_start',default=0.95,type=float,help="initial value of epsilon")
-    parser.add_argument('--epsilon_end',default=0.001,type=float,help="final value of epsilon")
-    parser.add_argument('--epsilon_decay',default=25000,type=int,help="decay rate of epsilon, the higher value, the slower decay")
-    parser.add_argument('--lr',default=0.0001,type=float,help="learning rate")
+    parser.add_argument('--epsilon_end',default=0.01,type=float,help="final value of epsilon")
+    parser.add_argument('--epsilon_decay',default=10000,type=int,help="decay rate of epsilon, the higher value, the slower decay")
+    parser.add_argument('--lr',default=1e-4,type=float,help="learning rate")
     parser.add_argument('--memory_capacity',default=100000,type=int,help="memory capacity")
-    parser.add_argument('--batch_size',default=64,type=int)
+    parser.add_argument('--batch_size',default=32,type=int)
     parser.add_argument('--target_update',default=4,type=int)
     parser.add_argument('--hidden_dim',default=512,type=int)
     parser.add_argument('--device',default='cuda',type=str,help="cpu or cuda") 
-    parser.add_argument('--seed',default=10,type=int,help="seed")   
+    parser.add_argument('--seed',default=42,type=int,help="seed")   
     args = parser.parse_args([])
     args = {**vars(args)}  # 转换成字典类型    
     ## 打印超参数

@@ -21,8 +21,10 @@ class simpleCnn(nn.Module):
     ) -> None:
         super().__init__()
         # We assume CxHxW images (channels first)
-        # Re-ordering will be done by pre-preprocessing or wrapper
-        n_input_channels = observation_space.shape[2]
+        # Re-ordering will be done by pre-preprocessing or wrapper、
+        assert len(
+            observation_space.shape) == 3, 'observation space must have the form channels x width x height'
+        n_input_channels = observation_space.shape[0]
         self.cnn = nn.Sequential(
             nn.Conv2d(n_input_channels, 32, kernel_size=8, stride=4, padding=0),
             nn.ReLU(),
@@ -35,7 +37,7 @@ class simpleCnn(nn.Module):
 
         # Compute shape by doing one forward pass
         with torch.no_grad():
-            n_flatten = self.cnn(torch.rand([1, observation_space.shape[2], observation_space.shape[1], observation_space.shape[0]]).float()).shape[1]
+            n_flatten = self.cnn(torch.rand([1, observation_space.shape[0], observation_space.shape[1], observation_space.shape[2]]).float()).shape[1]
 
         self.linear = nn.Sequential(nn.Linear(n_flatten, features_dim), nn.ReLU(), nn.Linear(features_dim, n_action))
 
